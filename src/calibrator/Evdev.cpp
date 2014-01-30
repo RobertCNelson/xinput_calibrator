@@ -196,6 +196,18 @@ bool CalibratorEvdev::finish(int width, int height)
     float y_min = (clicked.y[UL] + clicked.y[UR])/2.0;
     float y_max = (clicked.y[LL] + clicked.y[LR])/2.0;
 
+    // Should x and y be swapped?
+    if (abs(clicked.x[UL] - clicked.x[UR]) < abs(clicked.y[UL] - clicked.y[UR])) {
+	fprintf(stderr, "INFO: swap axes\n");
+        new_axis.swap_xy = !new_axis.swap_xy;
+        // calculate average of clicks
+        x_min = (clicked.x[UL] + clicked.x[UR])/2.0;
+        x_max = (clicked.x[LL] + clicked.x[LR])/2.0;
+        y_min = (clicked.y[UL] + clicked.y[LL])/2.0;
+        y_max = (clicked.y[UR] + clicked.y[LR])/2.0;
+
+   }
+
 
     // When evdev detects an invert_X/Y option,
     // it performs the following *crazy* code just before returning
@@ -217,13 +229,6 @@ bool CalibratorEvdev::finish(int width, int height)
     }
     // end of evdev inversion crazyness
 
-
-    // Should x and y be swapped?
-    if (abs(clicked.x[UL] - clicked.x[UR]) < abs(clicked.y[UL] - clicked.y[UR])) {
-        new_axis.swap_xy = !new_axis.swap_xy;
-        std::swap(x_min, y_min);
-        std::swap(x_max, y_max);
-    }
 
     // the screen was divided in num_blocks blocks, and the touch points were at
     // one block away from the true edges of the screen.
@@ -248,6 +253,11 @@ bool CalibratorEvdev::finish(int width, int height)
     y_min = scaleAxis(y_min, old_axys.y.max, old_axys.y.min, height, 0);
     y_max = scaleAxis(y_max, old_axys.y.max, old_axys.y.min, height, 0);
 
+    if (new_axis.swap_xy != old_axys.swap_xy) {
+	// After the values are transformed, swap them
+	std::swap(x_min, y_min);
+	std::swap(x_max, y_max);
+    }
 
     // round and put in new_axis struct
     new_axis.x.min = round(x_min); new_axis.x.max = round(x_max);
