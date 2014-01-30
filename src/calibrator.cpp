@@ -188,6 +188,11 @@ bool Calibrator::finish(int width, int height)
     y_min = scaleAxis(y_min, old_axys.y.max, old_axys.y.min, height, 0);
     y_max = scaleAxis(y_max, old_axys.y.max, old_axys.y.min, height, 0);
 
+    if (new_axis.swap_xy != old_axys.swap_xy) {
+	// After the values are trasnformed, swap them
+	std::swap(x_min, y_min);
+	std::swap(x_max, y_max);
+    }
 
     // round and put in new_axis struct
     new_axis.x.min = round(x_min); new_axis.x.max = round(x_max);
